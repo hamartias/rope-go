@@ -4,6 +4,10 @@ import (
   "fmt"
 )
 
+func print(s string) {
+  fmt.Println(s)
+}
+
 type RopeNode struct {
   piece string
   weight int
@@ -14,40 +18,6 @@ type RopeNode struct {
 func NewRopeNode(p string) *RopeNode {
   return &RopeNode{piece: p, weight: len(p)}
 }
-
-type RopeNodeStack struct {
-  stack []*RopeNode
-}
-
-func NewRopeNodeStack() *RopeNodeStack {
-  return &RopeNodeStack{stack: make([]*RopeNode, 0)}
-}
-
-func (s *RopeNodeStack) Len() int {
-  return len(s.stack)
-}
-
-func (s *RopeNodeStack) Push(rn *RopeNode) {
-  s.stack = append(s.stack, rn)
-}
-
-func (s *RopeNodeStack) Pop() (*RopeNode, error) {
-  if len(s.stack) == 0 {
-    return nil, fmt.Errorf("Trying to pop from empty stack")
-  }
-  li := len(s.stack)-1
-  ret := (s.stack)[li]
-  s.stack = (s.stack)[:li]
-  return ret, nil
-}
-
-func (s *RopeNodeStack) Print() {
-  for i, e := range(s.stack) {
-    fmt.Printf("%d: ", i)
-    fmt.Println(*e)
-  }
-}
-
 
 func (rn *RopeNode) isLeaf() bool {
   return (rn.left == nil) && (rn.right == nil)
@@ -62,7 +32,7 @@ func MakeRope(s string) *Rope {
   root := &RopeNode{piece: "", weight: slen}
   ret := &Rope{root: root}
   if slen == 1 || slen == 0 {
-    root.left = &RopeNode{piece: s, weight: slen}
+    root.left = &RopeNode{piece: s, weight: 0}
   } else {
     var sl, sr string
     for i := 0; i < slen/2; i++ {
@@ -71,14 +41,57 @@ func MakeRope(s string) *Rope {
     for i := slen/2; i < slen; i++ {
       sr += string(s[i])
     }
-    root.left = &RopeNode{piece: sl, weight: len(sl)}
-    root.right = &RopeNode{piece: sr, weight: len(sr)}
+    root.left = &RopeNode{piece: sl, weight: 0}
+    root.right = &RopeNode{piece: sr, weight: 0}
+    root.weight = len(sl)
   }
   return ret
 }
 
+func (r *Rope) Concat(rr *Rope) {
+  newroot := &RopeNode{left: r.root, right: rr.root, weight: r.root.leafWeights()}
+  r.root = newroot
+}
+
+func (r *Rope) Split(index int) (r1, r2 *Rope) {
+  return r, r
+}
+
+func (rn *RopeNode) Print() {
+  fmt.Printf("piece: %s, weight: %d\n", rn.piece, rn.weight)
+}
+
+func (rn *RopeNode) PrintRec() {
+  var _helper func(prefix string, rn *RopeNode)
+  _helper = func(prefix string, rn *RopeNode) {
+    fmt.Printf("%s", prefix)
+    rn.Print()
+    if rn.left != nil {
+      _helper(prefix + " ", rn.left)
+    }
+    if rn.right != nil {
+      _helper(prefix + " ", rn.right)
+    }
+  }
+  _helper("", rn)
+}
+
+func (r *Rope) Index(i int) rune {
+  return r.root.Index(i)
+}
+
+func (rn *RopeNode) Index(i int) rune {
+  if rn.weight <= i && rn.right != nil {
+    return rn.right.Index(i - rn.weight)
+  }
+  if rn.left != nil {
+    return rn.left.Index(i)
+  }
+  return rune(rn.piece[i])
+}
+
 func (r *Rope) Report(startIndex, endIndex int) string {
-  // TODO: find the actual traversal node, not just from root
+  // Optimization: find the actual traversal node, not just from root
   traversalRoot := r.root
   var inOrder func(rn *RopeNode) string
   inOrder = func(rn *RopeNode) string {
@@ -105,6 +118,7 @@ func MakeRopeFromSlice(sl []string) *Rope {
   // convert to RopeNodes
   nodes := make([]*RopeNode, len(sl))
   for i, s := range(sl) {
+    // Leaf nodes have weight 0
     nodes[i] = &RopeNode{piece: s, weight: len(s)}
   }
 
@@ -120,10 +134,11 @@ func MakeRopeFromSlice(sl []string) *Rope {
       break
     }
     temp := NewRopeNodeStack()
+    // want a final root node, otherwise can keep reducing, so go until len < 2
     for done := false; !done; done = stack.Len() < 2 {
       left, _ := stack.Pop()
       right, _ := stack.Pop()
-      parent := &RopeNode{weight: left.weight+right.weight, left: left, right: right}
+      parent := &RopeNode{weight: left.leafWeights(), left: left, right: right}
       temp.Push(parent)
     }
     if stack.Len() != 0 {
@@ -138,4 +153,16 @@ func MakeRopeFromSlice(sl []string) *Rope {
   }
   root, _ := stack.Pop()
   return &Rope{root: root}
+}
+
+func (rn *RopeNode) leafWeights() int {
+  // UNTESTED
+  ret := len(rn.piece)
+  if rn.left != nil {
+    ret += rn.left.leafWeights()
+  }
+  if rn.right != nil {
+    ret += rn.right.leafWeights()
+  }
+  return ret
 }

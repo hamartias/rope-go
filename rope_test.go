@@ -3,6 +3,7 @@ package main
 import (
   "testing"
   "fmt"
+  "math/rand"
 )
 
 func prints(s string) {
@@ -97,5 +98,75 @@ func TestReport(t *testing.T) {
   })
 
   t.Run("Report finds the correct root to traverse from", func(t *testing.T) {
+  })
+}
+
+func TestIndex(t *testing.T) {
+  t.Run("Index smoke test", func(t *testing.T) {
+    s := "string"
+    r := MakeRope(s)
+    for i := 0; i < len(s); i++ {
+      got := r.Index(i)
+      expected := rune(s[i])
+      if got != expected {
+        t.Errorf("got %b, wanted %b", got, expected)
+      }
+    }
+  })
+
+  t.Run("Index works for larger tree", func(t *testing.T) {
+    input := make([]string, 0)
+    rand.Seed(1) // replicatable, easy to change later on for complex testing
+    for i := 0; i < 20; i++ {
+      input = append(input, randString(i))
+    }
+    reference := ""
+    for _, s := range input {
+      reference += s
+    }
+    rope := MakeRopeFromSlice(input)
+    for i := 0; i < len(reference); i++ {
+      got := rope.Index(i)
+      expected := rune(reference[i])
+      if got != expected {
+        t.Errorf("got %s, wanted %s for index %d", string(got), string(expected), i)
+      }
+    }
+  })
+}
+
+func randString(n int) string {
+  letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  b := make([]rune, n)
+  for i := range b {
+    b[i] = letters[rand.Intn(len(letters))]
+  }
+  return string(b)
+}
+
+func TestConcat(t *testing.T) {
+  t.Run("Concat smoke test", func(t *testing.T) {
+    s1 := "test "
+    s2 := "string"
+    r1 := MakeRope(s1)
+    r2 := MakeRope(s2)
+    r1.Concat(r2)
+    got := r1.Report(0, len(s1) + len(s2)-1)
+    if got != s1+s2 {
+      t.Fail()
+    }
+  })
+}
+
+func TestSplit(t *testing.T) {
+  t.Run("Split smoke test", func(t *testing.T) {
+    s := "test string"
+    r := MakeRope(s)
+    r1, r2 := r.Split(4)
+    got1 := r1.Report(0, len(s))
+    got2 := r2.Report(0, len(s))
+    if got1 + got2 != s {
+      t.Errorf("1: %s, 2: %s", got1, got2)
+    }
   })
 }
