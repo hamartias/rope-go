@@ -58,6 +58,21 @@ func (r *Rope) Split(index int) (r1, r2 *Rope) {
   return &Rope{root: lr}, &Rope{root: rr}
 }
 
+func (r *Rope) Insert(i int, s string) {
+  newr := MakeRope(s)
+  ll, rr := r.Split(i)
+  ll.Concat(newr)
+  ll.Concat(rr)
+  r.root = ll.root
+}
+
+func (r *Rope) Delete(si, ei int) {
+  ll, rr := r.Split(si)
+  _, ar := rr.Split(ei - si)
+  ll.Concat(ar)
+  r.root = ll.root
+}
+
 func (rn *RopeNode) Split(index int) (rnl, rnr *RopeNode) {
   if rn.isLeaf() {
     if index == 0 {

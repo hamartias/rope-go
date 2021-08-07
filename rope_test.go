@@ -173,3 +173,29 @@ func TestSplit(t *testing.T) {
     }
   })
 }
+
+func TestInsert(t *testing.T) {
+  t.Run("Inserts a substring", func(t *testing.T) {
+    s := []string{"test ", "this ", "op ", "with ", "a ", "rope"}
+    r := MakeRopeFromSlice(s)
+    sp := " insert"
+    expected := "test this insert op with a rope"
+    r.Insert(9, sp)
+    got := r.Report(0, len(expected))
+    if got != expected {
+        t.Errorf("got %s, want %s", got, expected)
+    }
+  })
+}
+func TestDelete(t *testing.T) {
+  t.Run("Deletes a substring", func(t *testing.T) {
+    s := []string{"test ", "this ", "op ", "with ", "a ", "rope"}
+    r := MakeRopeFromSlice(s)
+    expected := "test this rope"
+    r.Delete(9, 19)
+    got := r.Report(0, len(expected))
+    if got != expected {
+        t.Errorf("got %s, want %s", got, expected)
+    }
+  })
+}
