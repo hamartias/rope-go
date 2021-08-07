@@ -160,13 +160,16 @@ func TestConcat(t *testing.T) {
 
 func TestSplit(t *testing.T) {
   t.Run("Split smoke test", func(t *testing.T) {
-    s := "test string"
-    r := MakeRope(s)
-    r1, r2 := r.Split(4)
-    got1 := r1.Report(0, len(s))
-    got2 := r2.Report(0, len(s))
-    if got1 + got2 != s {
-      t.Errorf("1: %s, 2: %s", got1, got2)
+    s := []string{"test ", "this ", "op ", "with ", "a ", "rope"}
+    r := MakeRopeFromSlice(s)
+    expected := "test this op with a rope"
+    for i := 0; i < len(expected); i++ {
+      r1, r2 := r.Split(i)
+      got1 := r1.Report(0, len(expected))
+      got2 := r2.Report(0, len(expected))
+      if got1 + got2 != expected {
+        t.Errorf("1: %s, 2: %s", got1, got2)
+      }
     }
   })
 }

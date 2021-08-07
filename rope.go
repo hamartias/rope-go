@@ -49,12 +49,35 @@ func MakeRope(s string) *Rope {
 }
 
 func (r *Rope) Concat(rr *Rope) {
-  newroot := &RopeNode{left: r.root, right: rr.root, weight: r.root.leafWeights()}
+  newroot := &RopeNode{left: r.root, right: rr.root, weight: r.root.leafWeight()}
   r.root = newroot
 }
 
 func (r *Rope) Split(index int) (r1, r2 *Rope) {
-  return r, r
+  lr, rr := r.root.Split(index)
+  return &Rope{root: lr}, &Rope{root: rr}
+}
+
+func (rn *RopeNode) Split(index int) (rnl, rnr *RopeNode) {
+  if rn.isLeaf() {
+    if index == 0 {
+      return &RopeNode{piece: ""}, &RopeNode{piece: rn.piece, weight: rn.weight}
+    } else {
+      p1 := rn.piece[:index]
+      p2 := rn.piece[index:]
+      return &RopeNode{piece: p1, weight: len(p1)}, &RopeNode{piece: p2, weight: len(p2)}
+    }
+  } else {
+    if rn.weight > index {
+      r1, r2 := rn.left.Split(index)
+      newRight := &RopeNode{weight: r2.leafWeight(), left: r2, right: rn.right}
+      return r1, newRight
+    } else {
+      r1, r2 := rn.right.Split(index - rn.weight)
+      newLeft := &RopeNode{weight: rn.left.leafWeight(), left: rn.left, right: r1}
+      return newLeft, r2
+    }
+  }
 }
 
 func (rn *RopeNode) Print() {
@@ -138,7 +161,7 @@ func MakeRopeFromSlice(sl []string) *Rope {
     for done := false; !done; done = stack.Len() < 2 {
       left, _ := stack.Pop()
       right, _ := stack.Pop()
-      parent := &RopeNode{weight: left.leafWeights(), left: left, right: right}
+      parent := &RopeNode{weight: left.leafWeight(), left: left, right: right}
       temp.Push(parent)
     }
     if stack.Len() != 0 {
@@ -155,14 +178,14 @@ func MakeRopeFromSlice(sl []string) *Rope {
   return &Rope{root: root}
 }
 
-func (rn *RopeNode) leafWeights() int {
+func (rn *RopeNode) leafWeight() int {
   // UNTESTED
   ret := len(rn.piece)
   if rn.left != nil {
-    ret += rn.left.leafWeights()
+    ret += rn.left.leafWeight()
   }
   if rn.right != nil {
-    ret += rn.right.leafWeights()
+    ret += rn.right.leafWeight()
   }
   return ret
 }
