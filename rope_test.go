@@ -49,22 +49,22 @@ func TestRopeNode(t *testing.T) {
 }
 
 func TestRopeCreation(t *testing.T) {
-  t.Run("MakeRope smoke test", func(t *testing.T) {
+  t.Run("NewRope smoke test", func(t *testing.T) {
     s := "hello world"
-    rope := MakeRope(s)
+    rope := NewRope(s)
     got := rope.root.left.piece + rope.root.right.piece
     if got != s {
       t.Errorf("got %s, wanted %s", got, s)
     }
   })
 
-  t.Run("MakeRope from multiple strings", func(t *testing.T) {
+  t.Run("NewRope from multiple strings", func(t *testing.T) {
     input := []string{"hello", " world", " test", " string"}
     expected := ""
     for _, s := range(input) {
       expected += s
     }
-    rope := MakeRopeFromSlice(input)
+    rope := NewRopeFromSlice(input)
     got := rope.Report(0, len(expected)-1)
     if got != expected {
       t.Errorf(buildFailString(got, expected))
@@ -75,7 +75,7 @@ func TestRopeCreation(t *testing.T) {
 func TestReport(t *testing.T) {
   testReport := func(s string, startIndex, endIndex int) bool {
     ok := true
-    rope := MakeRope(s)
+    rope := NewRope(s)
     got := rope.Report(startIndex, endIndex)
     expected := s[startIndex:endIndex+1]
     if got != expected {
@@ -104,7 +104,7 @@ func TestReport(t *testing.T) {
 func TestIndex(t *testing.T) {
   t.Run("Index smoke test", func(t *testing.T) {
     s := "string"
-    r := MakeRope(s)
+    r := NewRope(s)
     for i := 0; i < len(s); i++ {
       got := r.Index(i)
       expected := rune(s[i])
@@ -116,7 +116,7 @@ func TestIndex(t *testing.T) {
 
   t.Run("Index works for larger tree", func(t *testing.T) {
     input := make([]string, 0)
-    rand.Seed(1) // replicatable, easy to change later on for complex testing
+    rand.Seed(1) // replicable, easy to change later on for complex testing
     for i := 0; i < 20; i++ {
       input = append(input, randString(i))
     }
@@ -124,7 +124,7 @@ func TestIndex(t *testing.T) {
     for _, s := range input {
       reference += s
     }
-    rope := MakeRopeFromSlice(input)
+    rope := NewRopeFromSlice(input)
     for i := 0; i < len(reference); i++ {
       got := rope.Index(i)
       expected := rune(reference[i])
@@ -148,8 +148,8 @@ func TestConcat(t *testing.T) {
   t.Run("Concat smoke test", func(t *testing.T) {
     s1 := "test "
     s2 := "string"
-    r1 := MakeRope(s1)
-    r2 := MakeRope(s2)
+    r1 := NewRope(s1)
+    r2 := NewRope(s2)
     r1.Concat(r2)
     got := r1.Report(0, len(s1) + len(s2)-1)
     if got != s1+s2 {
@@ -161,7 +161,7 @@ func TestConcat(t *testing.T) {
 func TestSplit(t *testing.T) {
   t.Run("Split smoke test", func(t *testing.T) {
     s := []string{"test ", "this ", "op ", "with ", "a ", "rope"}
-    r := MakeRopeFromSlice(s)
+    r := NewRopeFromSlice(s)
     expected := "test this op with a rope"
     for i := 0; i < len(expected); i++ {
       r1, r2 := r.Split(i)
@@ -177,7 +177,7 @@ func TestSplit(t *testing.T) {
 func TestInsert(t *testing.T) {
   t.Run("Inserts a substring", func(t *testing.T) {
     s := []string{"test ", "this ", "op ", "with ", "a ", "rope"}
-    r := MakeRopeFromSlice(s)
+    r := NewRopeFromSlice(s)
     sp := " insert"
     expected := "test this insert op with a rope"
     r.Insert(9, sp)
@@ -187,10 +187,11 @@ func TestInsert(t *testing.T) {
     }
   })
 }
+
 func TestDelete(t *testing.T) {
   t.Run("Deletes a substring", func(t *testing.T) {
     s := []string{"test ", "this ", "op ", "with ", "a ", "rope"}
-    r := MakeRopeFromSlice(s)
+    r := NewRopeFromSlice(s)
     expected := "test this rope"
     r.Delete(9, 19)
     got := r.Report(0, len(expected))
